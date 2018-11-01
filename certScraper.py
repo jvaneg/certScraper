@@ -5,6 +5,7 @@ import sys
 import subprocess
 import os
 from OpenSSL import crypto
+import operator
 
 
 def main(argv):
@@ -72,15 +73,35 @@ def main(argv):
     print("Percent of links that support TLS: " + str(percentLinksTLS) + "% (" + str(numCerts) + "/" + str(len(links)) + ")")
 
     # gets the CA and expiration for each cert
+    issuerDict = {}
+    after2020Count = 0
     for certFile in os.listdir(CERTS_PATH):
         print(certFile)
         cert = crypto.load_certificate(crypto.FILETYPE_PEM, open(CERTS_PATH + certFile).read())
         issuer = cert.get_issuer()
         issuerName = issuer.CN
+
+        if(issuerName in issuerDict):
+            issuerDict[issuerName] += 1
+        else:
+            issuerDict[issuerName] = 1
+        
         expirationDate = cert.get_notAfter()    #format: YYYYMMDDhhmmssZ
+        expDecode = expirationDate.decode("UTF-8")
+        expirationYear = expDecode[0:4]
+        
+        if(int(expirationYear) >= 2020):
+            after2020Count += 1
+        
         print(issuerName)
         print(expirationDate)
 
+    mostPopularIssuer = max(issuerDict.items(), key=operator.itemgetter(1))[0]
+
+    print("The most popular certificate issuer is: " + mostPopularIssuer)
+
+    print("The number of certificates that expire in 2020 or later is: " + str(after2020Count))
+    print("The % of certificates this translates to is: " + str(after2020Count * 100 / numLinks) + "%")
 
     
 
