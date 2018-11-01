@@ -4,6 +4,7 @@ import re
 import sys
 import subprocess
 import os
+from OpenSSL import crypto
 
 
 def main(argv):
@@ -24,7 +25,17 @@ def main(argv):
     # gets the html
     rawHtml = rq.get('https://www.alexa.com/topsites/category/Top/' + category)
 
-    links = [(str((((line.split('/'))[2]).split('"'))[0]).lower(),str((((line.split('>'))[1]).split('<'))[0]).lower()) for line in rawHtml.text.split('\n') if "/siteinfo/" in line]
+    # parse the html in pairs: root - subdomain
+    # phil made me use this line im sorry its like this lmao
+    links = [list((str((((line.split('/'))[2]).split('"'))[0]).lower(),str((((line.split('>'))[1]).split('<'))[0]).lower())) for line in rawHtml.text.split('\n') if "/siteinfo/" in line]
+
+    # puts the www. back for sites that dont have subdomains
+    # this is because i was having some weirdness with www.nih.gov and nih.gov having different certs,
+    # but www.docs.google.com didnt have a cert and docs.google.com did have one
+    # probably not optimal but works for my purposes
+    for link in links:
+        if link[1].count('.') <= 1:
+            link[1] = "www." + str(link[1])
 
     if(len(links) == 0):
         print("No links in this category! (Note: Category is case-sensitive, and should have underscores instead of spaces")
@@ -53,12 +64,23 @@ def main(argv):
     for link in links:
         print(link[0] + " --- " + link[1])
 
-
     percentLinksWork = (numIndexes/len(links))*100
     percentLinksTLS = (numCerts/len(links))*100
 
     print("Percent of links that work: " + str(percentLinksWork) + "% (" + str(numIndexes) + "/" + str(len(links)) + ")")
     print("Percent of links that support TLS: " + str(percentLinksTLS) + "% (" + str(numCerts) + "/" + str(len(links)) + ")")
+
+    # gets the CA and expiration for each cert
+    for certFile in os.listdir(CERTS_PATH):
+        print(certFile)
+        cert = crypto.load_certificate(crypto.FILETYPE_PEM, open(CERTS_PATH + certFile).read())
+        issuer = cert.get_issuer()
+        issuerName = issuer.CN
+        expirationDate = cert.get_notAfter()    #format: YYYYMMDDhhmmssZ
+        print(issuerName)
+        print(expirationDate)
+
+
     
 
 # keeping this for some reason
