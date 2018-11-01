@@ -24,7 +24,7 @@ def main(argv):
     # gets the html
     rawHtml = rq.get('https://www.alexa.com/topsites/category/Top/' + category)
 
-    links = [("www."+str((((line.split('/'))[2]).split('"'))[0]).lower(),"www." + str((((line.split('>'))[1]).split('<'))[0]).lower()) for line in rawHtml.text.split('\n') if "/siteinfo/" in line]
+    links = [(str((((line.split('/'))[2]).split('"'))[0]).lower(),str((((line.split('>'))[1]).split('<'))[0]).lower()) for line in rawHtml.text.split('\n') if "/siteinfo/" in line]
 
     if(len(links) == 0):
         print("No links in this category! (Note: Category is case-sensitive, and should have underscores instead of spaces")
@@ -40,7 +40,7 @@ def main(argv):
 
     # attempt to download the index of a site and get its cert for each set
     for link in links:
-        subprocess.call(["bash", CERT_DOWNLOADER, link[0], link[1]])
+        subprocess.call(["bash", CERT_DOWNLOADER, link[1]])
         
 
     indexes = os.listdir(INDEX_PATH)
@@ -59,7 +59,6 @@ def main(argv):
 
     print("Percent of links that work: " + str(percentLinksWork) + "% (" + str(numIndexes) + "/" + str(len(links)) + ")")
     print("Percent of links that support TLS: " + str(percentLinksTLS) + "% (" + str(numCerts) + "/" + str(len(links)) + ")")
-
     
 
 # keeping this for some reason
