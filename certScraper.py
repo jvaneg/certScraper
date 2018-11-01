@@ -51,6 +51,7 @@ def main(argv):
 
     # attempt to download the index of a site and get its cert for each set
     for link in links:
+        print(link[1])
         subprocess.call(["bash", CERT_DOWNLOADER, link[1]])
         
 

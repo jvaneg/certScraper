@@ -4,4 +4,4 @@
 wget -q $1 -O ./tmp/indexes/$1.html >/dev/null
 
 #tests if the site supports TLS by getting its cert
-echo -n | openssl s_client -connect $1:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > ./tmp/certs/$1.cert
+echo -n | openssl s_client -connect $1:443 -servername $1 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > ./tmp/certs/$1.cert
