@@ -55,28 +55,29 @@ def main(argv):
         print(link[1])
         subprocess.call(["bash", CERT_DOWNLOADER, link[1]])
         
+    # print out the sites for human readability
+    print("\n---------------Sites---------------")
+    print("Root --- Site")
+    for link in links:
+        print(link[0] + " --- " + link[1])
+    print("-----------------------------------")
 
+    #calculates percents of sites that work/support tls
     indexes = os.listdir(INDEX_PATH)
     numIndexes = len(indexes)
     certs = os.listdir(CERTS_PATH)
     numCerts = len(certs)
+    percentLinksWork = (numIndexes*100/len(links))
+    percentLinksTLS = (numCerts*100/len(links))
 
-    # print out the sites for human readability
-    print("Root --- Site")
-    for link in links:
-        print(link[0] + " --- " + link[1])
-
-    percentLinksWork = (numIndexes/len(links))*100
-    percentLinksTLS = (numCerts/len(links))*100
-
-    print("Percent of links that work: " + str(percentLinksWork) + "% (" + str(numIndexes) + "/" + str(len(links)) + ")")
-    print("Percent of links that support TLS: " + str(percentLinksTLS) + "% (" + str(numCerts) + "/" + str(len(links)) + ")")
+    print(numCerts)
+    print(len(links))
+    print(percentLinksTLS)
 
     # gets the CA and expiration for each cert
     issuerDict = {}
     after2020Count = 0
     for certFile in os.listdir(CERTS_PATH):
-        print(certFile)
         cert = crypto.load_certificate(crypto.FILETYPE_PEM, open(CERTS_PATH + certFile).read())
         issuer = cert.get_issuer()
         issuerName = issuer.CN
@@ -92,17 +93,17 @@ def main(argv):
         
         if(int(expirationYear) >= 2020):
             after2020Count += 1
-        
-        print(issuerName)
-        print(expirationDate)
 
-    mostPopularIssuer = max(issuerDict.items(), key=operator.itemgetter(1))[0]
+    mostPopularIssuerList = max(issuerDict.items(), key=operator.itemgetter(1))
+    mostPopularIssuerCount = mostPopularIssuerList[1]
+    mostPopularIssuer = mostPopularIssuerList[0]
 
-    print("The most popular certificate issuer is: " + mostPopularIssuer)
-
-    print("The number of certificates that expire in 2020 or later is: " + str(after2020Count))
-    print("The % of certificates this translates to is: " + str(after2020Count * 100 / numLinks) + "%")
-
+    print("\n-----------------------------------")
+    print("Percent of links that work: " + str(percentLinksWork) + "% (" + str(numIndexes) + "/" + str(len(links)) + ")")
+    print("Percent of links that support TLS: " + str(percentLinksTLS) + "% (" + str(numCerts) + "/" + str(len(links)) + ")")
+    print("Most popular certificate issuer: " + mostPopularIssuer + " - " + str(mostPopularIssuerCount * 100 / len(links)) + "% (" + str(mostPopularIssuerCount) + "/" + str(len(links)) + ")")
+    print("Percent of certificates that expire in 2020 or later: " + str(after2020Count * 100 /len(links)) + "% (" + str(after2020Count) + "/" + str(len(links)) + ")")
+    print("-----------------------------------")
     
 
 # keeping this for some reason
