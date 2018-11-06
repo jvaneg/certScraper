@@ -70,10 +70,6 @@ def main(argv):
     percentLinksWork = (numIndexes*100/len(links))
     percentLinksTLS = (numCerts*100/len(links))
 
-    print(numCerts)
-    print(len(links))
-    print(percentLinksTLS)
-
     # gets the CA and expiration for each cert
     issuerDict = {}
     after2020Count = 0
